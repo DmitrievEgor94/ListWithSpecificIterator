@@ -103,7 +103,7 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
            int size = CustomArrayList.this.size();
 
            if (cursor==CustomArrayList.this.size()) cursor--;
-           while(cursor > 0&&ignoredElements.contains(elementData[cursor]))
+           while(cursor >= 0&&ignoredElements.contains(elementData[cursor]))
                cursor--;
        }
 
@@ -112,8 +112,9 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
        public E previous() {
            checkForComodification();
            int savedCursor=cursor;
-           int i = cursor-1;
+           cursor--;
            setCursorOnPreviousUnignorePosition();
+           int i=cursor;
            cursor=savedCursor;
            if (i < 0)
                throw new NoSuchElementException();
@@ -188,6 +189,7 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
         ListIterator<Integer> listIterator=customArrayList.listIterator();
         listIterator.next();
         listIterator.next();
+        listIterator.previous();
         System.out.println("ListIterator test work: "+listIterator.previous());
 
 
