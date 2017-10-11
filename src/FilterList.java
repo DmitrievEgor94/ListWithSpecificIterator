@@ -19,7 +19,7 @@ public class FilterList<E> extends ArrayList<E> {
 
 
     public List<E> getIgnoredElements() {
-        return ignoredElements;
+        return Collections.unmodifiableList(ignoredElements);
     }
 
     public boolean add(E e) {
