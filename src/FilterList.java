@@ -1,18 +1,24 @@
 import java.util.*;
 
-public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
+public class FilterList<E> extends ArrayList<E> {
 
-    private ArrayList<E> ignoredElements = new ArrayList<>();
+    private List<E> ignoredElements = new ArrayList<>();
 
-    public void addIgnoredElement(E in) {
-        ignoredElements.add(in);
+
+    public FilterList(List<E> elements, E... ignoredElements) {
+        super();
+
+        for (E element : elements) {
+            this.add(element);
+        }
+
+        for (E ignoredElement : ignoredElements) {
+            this.ignoredElements.add(ignoredElement);
+        }
     }
 
-    public boolean deleteElementFromIgnoreList(E in) {
-        return this.getIgnoredElements().remove(in);
-    }
 
-    public ArrayList<E> getIgnoredElements() {
+    public List<E> getIgnoredElements() {
         return ignoredElements;
     }
 
@@ -22,7 +28,6 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
 
     }
 
-    @Override
     public Iterator<E> iterator() {
         return new CustomItr();
     }
@@ -42,9 +47,9 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
             checkForComodification();
             setCursorOnNextUnignorePosition();
             int i = cursor;
-            if (i >= CustomArrayList.this.size())
+            if (i >= FilterList.this.size())
                 throw new NoSuchElementException();
-            Object[] elementData = CustomArrayList.this.toArray();
+            Object[] elementData = FilterList.this.toArray();
             if (i >= elementData.length)
                 throw new ConcurrentModificationException();
             cursor = i + 1;
@@ -52,11 +57,10 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
         }
 
         private void setCursorOnNextUnignorePosition() {
-            Object[] elementData = CustomArrayList.this.toArray();
-            List<E> ignoredElements = (ArrayList<E>) CustomArrayList.this.getIgnoredElements();
-            int size = CustomArrayList.this.size();
+            Object[] elementData = FilterList.this.toArray();
+            List<E> ignoredElements = (ArrayList<E>) FilterList.this.getIgnoredElements();
 
-            while (cursor < CustomArrayList.this.size() && ignoredElements.contains(elementData[cursor]))
+            while (cursor < FilterList.this.size() && ignoredElements.contains(elementData[cursor]))
                 cursor++;
         }
 
@@ -65,7 +69,7 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
             setCursorOnNextUnignorePosition();
             int checkCursor = cursor;
             cursor = savedCursor;
-            return cursor != CustomArrayList.this.size();
+            return checkCursor != FilterList.this.size();
         }
 
         public void remove() {
@@ -73,7 +77,7 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
                 throw new IllegalStateException();
             checkForComodification();
             try {
-                CustomArrayList.this.remove(lastRet);
+                FilterList.this.remove(lastRet);
                 lastRet = -1;
                 expectedModCount = modCount;
             } catch (IndexOutOfBoundsException ex) {
@@ -104,11 +108,12 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
         }
 
         private void setCursorOnPreviousUnignorePosition() {
-            Object[] elementData = CustomArrayList.this.toArray();
-            List<E> ignoredElements = (ArrayList<E>) CustomArrayList.this.getIgnoredElements();
-            int size = CustomArrayList.this.size();
+            Object[] elementData = FilterList.this.toArray();
+            List<E> ignoredElements = (ArrayList<E>) FilterList.this.getIgnoredElements();
 
-            if (cursor == CustomArrayList.this.size()) cursor--;
+            int size = FilterList.this.size();
+
+            if (cursor == FilterList.this.size()) cursor--;
             while (cursor >= 0 && ignoredElements.contains(elementData[cursor]))
                 cursor--;
         }
@@ -124,7 +129,7 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
             cursor = savedCursor;
             if (i < 0)
                 throw new NoSuchElementException();
-            Object[] elementData = CustomArrayList.this.toArray();
+            Object[] elementData = FilterList.this.toArray();
             if (i >= elementData.length)
                 throw new ConcurrentModificationException();
             cursor = i;
@@ -150,7 +155,7 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
             checkForComodification();
 
             try {
-                CustomArrayList.this.set(lastRet, e);
+                FilterList.this.set(lastRet, e);
             } catch (IndexOutOfBoundsException ex) {
                 throw new ConcurrentModificationException();
             }
@@ -162,7 +167,7 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
 
             try {
                 int i = cursor;
-                CustomArrayList.this.add(i, e);
+                FilterList.this.add(i, e);
                 cursor = i + 1;
                 lastRet = -1;
                 expectedModCount = modCount;
@@ -173,36 +178,38 @@ public class CustomArrayList<E> extends ArrayList<E> implements CustomList<E> {
     }
 
     public static void main(String args[]) {
-        CustomList<Integer> customArrayList = new CustomArrayList<>();
 
-        customArrayList.add(1);
-        customArrayList.add(4);
-        customArrayList.add(5);
-        customArrayList.add(9);
-        customArrayList.add(23);
+        List<Integer> list = new ArrayList<>();
+        list.add(1);
+        list.add(2);
+        list.add(3);
+        list.add(4);
 
-        System.out.println("Our list: " + customArrayList);
+        List<Integer> filterList = new FilterList<>(list, 2, 1);
 
-        customArrayList.addIgnoredElement(1);
-        customArrayList.add(1);
-        customArrayList.add(345);
+        filterList.add(1);
+        filterList.add(4);
 
-        Iterator<Integer> iterator = customArrayList.iterator();
+        System.out.println("Our list: " + filterList);
+
+        filterList.add(1);
+        filterList.add(345);
+
+        Iterator<Integer> iterator = filterList.iterator();
+
 
         iterator.next();
         iterator.next();
         iterator.remove();
-        customArrayList.addIgnoredElement(9);
-        System.out.println("Our list without ignored elements and one deleted element: " + customArrayList);
+        System.out.println("Our list without ignored elements and one deleted element: " + filterList);
 
-        ListIterator<Integer> listIterator = customArrayList.listIterator();
+        ListIterator<Integer> listIterator = filterList.listIterator();
         listIterator.next();
         listIterator.next();
         listIterator.previous();
         System.out.println("ListIterator test work: " + listIterator.previous());
 
 
-        customArrayList.deleteElementFromIgnoreList(9);
-        System.out.println("Our list after deleting one element from ignore list: " + customArrayList);
+        System.out.println("Our list after deleting one element from ignore list: " + filterList);
     }
 }
